@@ -8,10 +8,10 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const Address_model_1 = require("./Address.model");
 const { Schema } = mongoose_1.default;
 exports.UserSchema = new Schema({
-    firstName: String,
-    lastName: String,
-    email: String,
-    password: String,
+    firstName: { type: String, required: true },
+    lastName: { type: String, required: true },
+    email: { type: String, required: true },
+    password: { type: String, select: false },
     token: String,
     billingAddress: Address_model_1.AddressSchema,
     shippingAddress: Address_model_1.AddressSchema,

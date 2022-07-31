@@ -17,10 +17,10 @@ export interface IUser {
 
 export const UserSchema = new Schema<IUser>(
   {
-    firstName: String,
-    lastName: String,
-    email: String,
-    password: String,
+    firstName: { type: String, required: true },
+    lastName: { type: String, required: true },
+    email: { type: String, required: true },
+    password: { type: String, select: false },
     token: String,
     billingAddress: AddressSchema,
     shippingAddress: AddressSchema,

@@ -95,39 +95,42 @@ app.post("/auth/login", async (req, res) => {
     return res.json({ status: 0, message: "Email and Password required" });
   }
 
-  let user = await User.findOne({ email });
-  if (!user) {
-    return res.json({ status: 0, message: "User does not exist" });
-  }
-
-  const valid = await checkPassword(password, user?.password || "");
-  if (valid) {
-    user.token = "";
-    const token = jwt.sign(
-      { id: user.id, email: user.email, timestamp: Date.now() },
-      process.env.SECRET_KEY ||
-        JSON.stringify({ id: user.id, email: user.email }),
-      { expiresIn: "10h" }
-    );
-
-    if (!token) {
-      return res.json({
-        status: 0,
-        message: "Authentication failed due to server error. Try again later",
-      });
+  User.findOne({ email }, "+password", async (err: any, user: any) => {
+    if (err) {
+      return res
+        .status(500)
+        .json({ status: 0, message: "Something went wrong" });
     }
 
-    user!.token = token;
-    user?.save();
-    user.password = undefined;
+    const valid = await checkPassword(password, user?.password || "");
+    if (valid) {
+      user.token = "";
+      const token = jwt.sign(
+        { id: user.id, email: user.email, timestamp: Date.now() },
+        process.env.SECRET_KEY ||
+          JSON.stringify({ id: user.id, email: user.email }),
+        { expiresIn: "10h" }
+      );
 
-    return res.json({
-      status: 1,
-      message: { user },
-    });
-  } else {
-    return res.json({ status: 0, message: "Incorrect Email or Password" });
-  }
+      if (!token) {
+        return res.json({
+          status: 0,
+          message: "Authentication failed due to server error. Try again later",
+        });
+      }
+
+      user!.token = token;
+      await user.save();
+      user.password = undefined;
+
+      return res.json({
+        status: 1,
+        message: { user },
+      });
+    } else {
+      return res.json({ status: 0, message: "Incorrect Email or Password" });
+    }
+  });
 });
 
 app.post("/auth/register", async (req, res) => {
@@ -139,8 +142,8 @@ app.post("/auth/register", async (req, res) => {
   } else {
     let user = new User({ email, password, firstName, lastName });
     user.password = await hashPassword(password);
-    user.save();
-    user.password = undefined
+    await user.save();
+    user.password = undefined;
 
     return res.json({
       status: 1,

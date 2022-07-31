@@ -78,32 +78,35 @@ app.post("/auth/login", async (req, res) => {
     if (!password || !email) {
         return res.json({ status: 0, message: "Email and Password required" });
     }
-    let user = await User_model_1.default.findOne({ email });
-    if (!user) {
-        return res.json({ status: 0, message: "User does not exist" });
-    }
-    const valid = await checkPassword(password, (user === null || user === void 0 ? void 0 : user.password) || "");
-    if (valid) {
-        user.token = "";
-        const token = jsonwebtoken_1.default.sign({ id: user.id, email: user.email, timestamp: Date.now() }, process.env.SECRET_KEY ||
-            JSON.stringify({ id: user.id, email: user.email }), { expiresIn: "10h" });
-        if (!token) {
+    User_model_1.default.findOne({ email }, "+password", async (err, user) => {
+        if (err) {
+            return res
+                .status(500)
+                .json({ status: 0, message: "Something went wrong" });
+        }
+        const valid = await checkPassword(password, (user === null || user === void 0 ? void 0 : user.password) || "");
+        if (valid) {
+            user.token = "";
+            const token = jsonwebtoken_1.default.sign({ id: user.id, email: user.email, timestamp: Date.now() }, process.env.SECRET_KEY ||
+                JSON.stringify({ id: user.id, email: user.email }), { expiresIn: "10h" });
+            if (!token) {
+                return res.json({
+                    status: 0,
+                    message: "Authentication failed due to server error. Try again later",
+                });
+            }
+            user.token = token;
+            await user.save();
+            user.password = undefined;
             return res.json({
-                status: 0,
-                message: "Authentication failed due to server error. Try again later",
+                status: 1,
+                message: { user },
             });
         }
-        user.token = token;
-        user === null || user === void 0 ? void 0 : user.save();
-        user.password = undefined;
-        return res.json({
-            status: 1,
-            message: { user },
-        });
-    }
-    else {
-        return res.json({ status: 0, message: "Incorrect Email or Password" });
-    }
+        else {
+            return res.json({ status: 0, message: "Incorrect Email or Password" });
+        }
+    });
 });
 app.post("/auth/register", async (req, res) => {
     const { email, password, firstName, lastName } = req.body;
@@ -114,7 +117,7 @@ app.post("/auth/register", async (req, res) => {
     else {
         let user = new User_model_1.default({ email, password, firstName, lastName });
         user.password = await hashPassword(password);
-        user.save();
+        await user.save();
         user.password = undefined;
         return res.json({
             status: 1,
