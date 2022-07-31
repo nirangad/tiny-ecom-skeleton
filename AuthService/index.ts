@@ -1,0 +1,150 @@
+import express from "express";
+import dotenv from "dotenv";
+import ampq from "amqplib";
+import mongoose from "mongoose";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import isAuthenticated from "@nirangad/is-authenticated";
+
+import User, { IUser } from "./models/User.model";
+
+// DotEnv Configuration
+dotenv.config();
+
+// RabbitMQ connection
+const rabbitConnectionURL = process.env.RABBITMQ_URL || "amqp://localhost:5672";
+const rabbitAuthQueue = process.env.RABBITMQ_AUTH_QUEUE || "rabbitmq@auth";
+const connectRabbitMQ = async () => {
+  const rabbitConnection = await ampq.connect(rabbitConnectionURL);
+  const rabbitChannel = await rabbitConnection.createChannel();
+  rabbitChannel.assertQueue(rabbitAuthQueue);
+};
+
+// MongoDB Connection
+const mongoDBURL = process.env.MONGODB_URL || "mongodb://localhost:27017";
+mongoose.connect(mongoDBURL, () => {
+  console.log(`Auth Service DB connected`);
+  connectRabbitMQ();
+});
+
+// Hashing
+const hashPassword = async (password: string): Promise<string> => {
+  const salt = await bcrypt.genSalt(6);
+  return await bcrypt.hash(password, salt);
+};
+
+const checkPassword = async (
+  password: string,
+  hashed: string
+): Promise<boolean> => {
+  const valid = await bcrypt.compare(password, hashed);
+  return valid;
+};
+
+// Express Server
+const port = process.env.SERVER_PORT || "8080";
+const app = express();
+
+app.use(express.json());
+
+app.listen(port, () => {
+  console.log(`Auth Service listening on port ${port}`);
+});
+
+// Express Routes
+app.get("/auth", (_req, res) => {
+  return res.json({ status: 1, message: "Welcome to Auth Service" });
+});
+
+app.delete("/auth", isAuthenticated, (req: any, res) => {
+  const authUser = req.user;
+  User.deleteOne(
+    { email: authUser.email },
+    (err: any, data: { deletedCount: number }) => {
+      if (err) {
+        return res.json({
+          status: 0,
+          message: `Failed to delete user ${authUser.email}`,
+        });
+      }
+
+      if (data.deletedCount == 0) {
+        return res.json({
+          status: 0,
+          message: `User does not exists`,
+        });
+      }
+
+      return res.json({
+        status: 1,
+        message: `User deleted: ${authUser.email}`,
+      });
+    }
+  );
+});
+
+app.get("/auth/users/all", isAuthenticated, async (_req, res) => {
+  const users = await User.find({});
+  return res.json({ status: 1, message: users });
+});
+
+//curl -d '{ "email": "nirangad@gmail.com", "password": "abcd1234" }' -H "Content-Type: application/json" -X POST http://localhost:8080/auth/login
+app.post("/auth/login", async (req, res) => {
+  const { email, password } = req.body;
+  if (!password || !email) {
+    return res.json({ status: 0, message: "Email and Password required" });
+  }
+
+  let user = await User.findOne({ email });
+  if (!user) {
+    return res.json({ status: 0, message: "User does not exist" });
+  }
+
+  const valid = await checkPassword(password, user?.password || "");
+  if (valid) {
+    user.token = "";
+    const token = jwt.sign(
+      { id: user.id, email: user.email, timestamp: Date.now() },
+      process.env.SECRET_KEY ||
+        JSON.stringify({ id: user.id, email: user.email }),
+      { expiresIn: "10h" }
+    );
+
+    if (!token) {
+      return res.json({
+        status: 0,
+        message: "Authentication failed due to server error. Try again later",
+      });
+    }
+
+    user!.token = token;
+    user?.save();
+    user.password = undefined;
+
+    return res.json({
+      status: 1,
+      message: { user },
+    });
+  } else {
+    return res.json({ status: 0, message: "Incorrect Email or Password" });
+  }
+});
+
+app.post("/auth/register", async (req, res) => {
+  const { email, password, firstName, lastName } = req.body;
+
+  let user = await User.findOne({ email });
+  if (user) {
+    return res.json({ status: 0, message: "User already exists" });
+  } else {
+    let user = new User({ email, password, firstName, lastName });
+    user.password = await hashPassword(password);
+    user.save();
+    user.password = undefined
+
+    return res.json({
+      status: 1,
+      message: { user },
+    });
+  }
+});
