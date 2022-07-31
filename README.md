@@ -14,4 +14,4 @@ Tiniest E Commerce skeleton with microservices architecture with NodeJS. This is
 
 ## Top level architecture
 
-!(https://github.com/nirangad/tiny-ecom-skeleton/blob/main/assets/MicroservicesDemo.png)
+![Basic architecture](https://github.com/nirangad/tiny-ecom-skeleton/blob/main/assets/MicroservicesDemo.png)
