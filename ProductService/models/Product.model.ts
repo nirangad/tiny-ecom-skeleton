@@ -20,7 +20,7 @@ export interface IProduct {
 export const productSchema = new Schema<IProduct>(
   {
     name: { type: String, required: true },
-    code: { type: String, required: true },
+    code: { type: String, required: true, unique: true },
     description: String,
     purchasePrice: { type: Number, required: true },
     retailPrice: { type: Number, required: true },

@@ -50,7 +50,7 @@ app.delete("/auth", is_authenticated_1.default, (req, res) => {
         if (err) {
             return res.json({
                 status: 0,
-                message: `Failed to delete user ${authUser.email}`,
+                message: `Something went wrong`,
             });
         }
         if (data.deletedCount == 0) {

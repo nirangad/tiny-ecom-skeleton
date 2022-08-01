@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import mongoose from "mongoose";
 import rabbitMQ from "./common/rabbitmq/rabbitmq";
 import logger from "./common/logger/logger";
+import validateId from "./common/mongo/idValidation";
 import isAuthenticated from "@nirangad/is-authenticated";
 
 import Product from "./models/Product.model";
@@ -33,13 +34,110 @@ app.listen(port, async () => {
 
 // curl -X POST http://localhost:8081/product -H "Content-Type: application/json" -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYyZTA5YzRiMWFhNTM2YTRlOWUyMmY4MiIsImVtYWlsIjoibmlyYW5nYWRAZ21haWwuY29tIiwidGltZXN0YW1wIjoxNjU5MDI0MTg0MzUyLCJpYXQiOjE2NTkwMjQxODR9.r0vHG5WP3wJEpoXH41vbwH63_y3z1RrvqJ7FVdu4AiY" | json_pp
 // Express Routes
+app.get("/product", isAuthenticated, (_req, res) => {
+  return res.json({ status: 1, message: "Welcome to Product Service" });
+});
+
 app.get("/product/all", isAuthenticated, async (_req, res) => {
-  const products = await Product.find({});
-  console.log("Products: ", products);
-  return res.json({ status: 1, message: products });
+  Product.find({}, (err: any, products: any) => {
+    if (err) {
+      return res
+        .status(500)
+        .json({ status: 0, message: "Something went wrong" });
+    }
+    return res.json({ status: 1, message: products });
+  });
+});
+
+app.get("/product/:id", isAuthenticated, validateId, async (req, res) => {
+  const product = await Product.findById(req.params.id);
+  if (product) {
+    return res.json({ status: 1, message: product });
+  }
+  return res.json({ status: 0, message: "Product does not exist" });
+});
+
+app.delete("/product/:id", isAuthenticated, validateId, async (req, res) => {
+  Product.deleteOne(
+    { _id: req.params.id },
+    (err: any, data: { deletedCount: number }) => {
+      if (err) {
+        return res.json({
+          status: 0,
+          message: `Something went wrong`,
+        });
+      }
+
+      if (data.deletedCount == 0) {
+        return res.json({
+          status: 0,
+          message: `Product does not exists`,
+        });
+      }
+
+      return res.json({
+        status: 1,
+        message: `Product deleted: ${req.params.id}`,
+      });
+    }
+  );
 });
 
 app.post("/product", isAuthenticated, async (req, res) => {
   const productPayload = req.body.product;
-  return res.json({ status: 1, message: "Welcome to Product create Service" });
+  Product.create(productPayload, (err: any, product: any) => {
+    if (err) {
+      res.status(500);
+      if (err.code == 11000) {
+        return res.json({
+          status: 0,
+          message: {
+            error: "Mentioned fields in Product must be unique",
+            fields: err.keyValue,
+          },
+        });
+      }
+      return res.json({ status: 0, message: "Something went wrong" });
+    }
+    return res.json({ status: 1, message: product });
+  });
+});
+
+app.put("/product/:id", isAuthenticated, validateId, async (req, res) => {
+  const productPayload = req.body.product;
+  Product.findOne({ _id: req.params.id }, (err: any, product: any) => {
+    if (err) {
+      console.log("Error: ", err.reason);
+      return res
+        .status(500)
+        .json({ status: 0, message: "Something went wrong" });
+    }
+
+    if (!product) {
+      return res.json({ status: 0, message: "Product does not exist" });
+    }
+
+    Object.keys(productPayload).forEach(function (key) {
+      if (productPayload[key] !== null || productPayload[key] !== undefined) {
+        product[key] = productPayload[key];
+      }
+    });
+
+    product.save((err: any, product: any) => {
+      if (err) {
+        res.status(500);
+        if (err.code == 11000) {
+          return res.json({
+            status: 0,
+            message: {
+              error: "Mentioned fields in Product must be unique",
+              fields: err.keyValue,
+            },
+          });
+        }
+        return res.json({ status: 0, message: "Something went wrong" });
+      }
+      return res.json({ status: 1, message: product });
+    });
+  });
 });
