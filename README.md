@@ -10,6 +10,8 @@ Tiniest E Commerce skeleton with microservices architecture with NodeJS. This is
 - ```@nirangad/is-authenticated``` used as a middleware for ```express``` to validate Authorization header for the token
   - [NPM](https://www.npmjs.com/package/@nirangad/is-authenticated) - ```npm i @nirangad/is-authenticated```
   - [GitHub Repo](https://github.com/nirangad/is-authenticated)
+- ```winston``` and ```express-winston``` for Logging. ```access.log``` and ```error.log``` will be created under ```logs``` folder
+  - Comment/Uncomment ```app.use(logger())``` in the ```index.ts``` of any service
 
 
 ## Top level architecture

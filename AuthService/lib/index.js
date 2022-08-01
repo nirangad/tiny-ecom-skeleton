@@ -2,30 +2,31 @@
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
+var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const dotenv_1 = __importDefault(require("dotenv"));
-const amqplib_1 = __importDefault(require("amqplib"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
+const rabbitmq_1 = __importDefault(require("./common/rabbitmq/rabbitmq"));
+const logger_1 = __importDefault(require("./common/logger/logger"));
 const is_authenticated_1 = __importDefault(require("@nirangad/is-authenticated"));
 const User_model_1 = __importDefault(require("./models/User.model"));
 // DotEnv Configuration
 dotenv_1.default.config();
+// Express Server
+const port = process.env.SERVER_PORT || "8080";
+const app = express_1.default();
+app.use(express_1.default.json());
+// Logger
+app.use(logger_1.default());
 // RabbitMQ connection
-const rabbitConnectionURL = process.env.RABBITMQ_URL || "amqp://localhost:5672";
-const rabbitAuthQueue = process.env.RABBITMQ_AUTH_QUEUE || "rabbitmq@auth";
-const connectRabbitMQ = async () => {
-    const rabbitConnection = await amqplib_1.default.connect(rabbitConnectionURL);
-    const rabbitChannel = await rabbitConnection.createChannel();
-    rabbitChannel.assertQueue(rabbitAuthQueue);
-};
+rabbitmq_1.default.connect((_a = process.env.RABBITMQ_AUTH_QUEUE) !== null && _a !== void 0 ? _a : "rabbitmq@auth");
 // MongoDB Connection
 const mongoDBURL = process.env.MONGODB_URL || "mongodb://localhost:27017";
 mongoose_1.default.connect(mongoDBURL, () => {
     console.log(`Auth Service DB connected`);
-    connectRabbitMQ();
 });
 // Hashing
 const hashPassword = async (password) => {
@@ -36,10 +37,6 @@ const checkPassword = async (password, hashed) => {
     const valid = await bcrypt_1.default.compare(password, hashed);
     return valid;
 };
-// Express Server
-const port = process.env.SERVER_PORT || "8080";
-const app = express_1.default();
-app.use(express_1.default.json());
 app.listen(port, () => {
     console.log(`Auth Service listening on port ${port}`);
 });

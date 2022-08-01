@@ -1,30 +1,32 @@
 import express from "express";
 import dotenv from "dotenv";
-import ampq from "amqplib";
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import rabbitMQ from "./common/rabbitmq/rabbitmq";
+import logger from "./common/logger/logger";
 import isAuthenticated from "@nirangad/is-authenticated";
 
-import User, { IUser } from "./models/User.model";
+import User from "./models/User.model";
 
 // DotEnv Configuration
 dotenv.config();
 
+// Express Server
+const port = process.env.SERVER_PORT || "8080";
+const app = express();
+app.use(express.json());
+
+// Logger
+app.use(logger());
+
 // RabbitMQ connection
-const rabbitConnectionURL = process.env.RABBITMQ_URL || "amqp://localhost:5672";
-const rabbitAuthQueue = process.env.RABBITMQ_AUTH_QUEUE || "rabbitmq@auth";
-const connectRabbitMQ = async () => {
-  const rabbitConnection = await ampq.connect(rabbitConnectionURL);
-  const rabbitChannel = await rabbitConnection.createChannel();
-  rabbitChannel.assertQueue(rabbitAuthQueue);
-};
+rabbitMQ.connect(process.env.RABBITMQ_AUTH_QUEUE ?? "rabbitmq@auth");
 
 // MongoDB Connection
 const mongoDBURL = process.env.MONGODB_URL || "mongodb://localhost:27017";
 mongoose.connect(mongoDBURL, () => {
   console.log(`Auth Service DB connected`);
-  connectRabbitMQ();
 });
 
 // Hashing
@@ -40,12 +42,6 @@ const checkPassword = async (
   const valid = await bcrypt.compare(password, hashed);
   return valid;
 };
-
-// Express Server
-const port = process.env.SERVER_PORT || "8080";
-const app = express();
-
-app.use(express.json());
 
 app.listen(port, () => {
   console.log(`Auth Service listening on port ${port}`);
