@@ -24,9 +24,14 @@ app.use(logger());
 rabbitMQ.connect(process.env.RABBITMQ_AUTH_QUEUE ?? "rabbitmq@auth");
 
 // MongoDB Connection
-const mongoDBURL = process.env.MONGODB_URL || "mongodb://localhost:27017";
+const mongoDBURL =
+  process.env.MONGODB_URL || "mongodb://localhost:27017/auth-service";
 mongoose.connect(mongoDBURL, () => {
   console.log(`Auth Service DB connected`);
+});
+
+app.listen(port, () => {
+  console.log(`Auth Service listening on port ${port}`);
 });
 
 // Hashing
@@ -42,10 +47,6 @@ const checkPassword = async (
   const valid = await bcrypt.compare(password, hashed);
   return valid;
 };
-
-app.listen(port, () => {
-  console.log(`Auth Service listening on port ${port}`);
-});
 
 // Express Routes
 app.get("/auth", (_req, res) => {

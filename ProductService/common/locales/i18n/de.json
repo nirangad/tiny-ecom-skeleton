@@ -1,0 +1,11 @@
+{
+  "HTTP_500": "Etwas ist schief gelaufen..!",
+  "PRODUCT": {
+    "WELCOME": "Willkommen beim Produktservice",
+    "DELETED": "Produkt erfolgreich gelöscht",
+    "ERROR": {
+      "NO_PRODUCT": "Produkt existiert nicht",
+      "UNIQUE_FIELDS": "Erwähnte Felder im Produkt müssen eindeutig sein"
+    }
+  }
+}

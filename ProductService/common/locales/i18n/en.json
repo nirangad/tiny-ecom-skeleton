@@ -1,0 +1,11 @@
+{
+  "HTTP_500": "Something went wrong..!",
+  "PRODUCT": {
+    "WELCOME": "Welcome to Product Service",
+    "DELETED": "Product deleted successfully",
+    "ERROR": {
+      "NO_PRODUCT": "Product does not exist",
+      "UNIQUE_FIELDS": "Mentioned fields in the Product must be unique"
+    }
+  }
+}
