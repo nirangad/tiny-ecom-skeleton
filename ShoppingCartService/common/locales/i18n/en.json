@@ -1,0 +1,30 @@
+{
+  "HTTP_500": "Something went wrong..!",
+  "ERROR": {
+    "VALIDATION": "Invalid data provided"
+  },
+  "AUTH": {
+    "WELCOME": "Welcome to Auth Service",
+    "USER_DELETED": "User deleted",
+    "ERROR": {
+      "NO_USER": "User does not exist",
+      "USER_EXISTS": "User already exists",
+      "INCORRECT_CREDENTIALS": "Incorrect Email or Password",
+      "UNIQUE_FIELDS": "Mentioned fields in the Product must be unique",
+      "REQUIRED": {
+        "EMAIL_PASSWORD": "Email and Password required"
+      }
+    }
+  },
+  "PRODUCT": {
+    "WELCOME": "Welcome to Product Service",
+    "DELETED": "Product deleted successfully",
+    "ERROR": {
+      "NO_PRODUCT": "Product does not exist",
+      "UNIQUE_FIELDS": "Mentioned fields in the Product must be unique"
+    }
+  },
+  "SHOPPINGCART": {
+    "WELCOME": "Welcome to Shopping Cart Service"
+  }
+}
