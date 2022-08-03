@@ -1,10 +1,13 @@
 import express from "express";
+import { body, validationResult } from "express-validator";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+
 import rabbitMQ from "./common/rabbitmq/rabbitmq";
 import logger from "./common/logger/logger";
+import i18nextexpress from "./common/locales/localize";
 import isAuthenticated from "@nirangad/is-authenticated";
 
 import User from "./models/User.model";
@@ -16,6 +19,9 @@ dotenv.config();
 const port = process.env.SERVER_PORT || "8080";
 const app = express();
 app.use(express.json());
+
+// Localization
+app.use(i18nextexpress);
 
 // Logger
 app.use(logger());
@@ -49,8 +55,8 @@ const checkPassword = async (
 };
 
 // Express Routes
-app.get("/auth", (_req, res) => {
-  return res.json({ status: 1, message: "Welcome to Auth Service" });
+app.get("/auth", (req, res) => {
+  return res.json({ status: 1, message: req.t("AUTH.WELCOME") });
 });
 
 app.delete("/auth", isAuthenticated, (req: any, res) => {
@@ -59,22 +65,22 @@ app.delete("/auth", isAuthenticated, (req: any, res) => {
     { email: authUser.email },
     (err: any, data: { deletedCount: number }) => {
       if (err) {
-        return res.json({
+        return res.status(500).json({
           status: 0,
-          message: `Something went wrong`,
+          message: req.t("HTTP_500"),
         });
       }
 
       if (data.deletedCount == 0) {
-        return res.json({
+        return res.status(400).json({
           status: 0,
-          message: `User does not exists`,
+          message: req.t("AUTH.ERROR.NO_USER"),
         });
       }
 
       return res.json({
         status: 1,
-        message: `User deleted: ${authUser.email}`,
+        message: `${req.t("AUTH.USER_DELETED")}: ${authUser.email}`,
       });
     }
   );
@@ -85,23 +91,29 @@ app.get("/auth/users/all", isAuthenticated, async (_req, res) => {
   return res.json({ status: 1, message: users });
 });
 
-//curl -d '{ "email": "nirangad@gmail.com", "password": "abcd1234" }' -H "Content-Type: application/json" -X POST http://localhost:8080/auth/login
-app.post("/auth/login", async (req, res) => {
+app.post("/auth/login", body("email").isEmail(), async (req, res) => {
+  const result = validationResult(req);
+  if (!result.isEmpty()) {
+    return res
+      .status(400)
+      .json({ status: 0, message: req.t("ERROR.VALIDATION") });
+  }
+
   const { email, password } = req.body;
   if (!password || !email) {
-    return res.json({ status: 0, message: "Email and Password required" });
+    return res.status(400).json({
+      status: 0,
+      message: req.t("AUTH.ERROR.REQUIRED.EMAIL_PASSWORD"),
+    });
   }
 
   User.findOne({ email }, "+password", async (err: any, user: any) => {
     if (err) {
-      return res
-        .status(500)
-        .json({ status: 0, message: "Something went wrong" });
+      return res.status(500).json({ status: 0, message: req.t("HTTP_500") });
     }
 
     const valid = await checkPassword(password, user?.password || "");
     if (valid) {
-      user.token = "";
       const token = jwt.sign(
         { id: user.id, email: user.email, timestamp: Date.now() },
         process.env.SECRET_KEY ||
@@ -110,13 +122,49 @@ app.post("/auth/login", async (req, res) => {
       );
 
       if (!token) {
-        return res.json({
+        return res.status(500).json({
           status: 0,
-          message: "Authentication failed due to server error. Try again later",
+          message: req.t("HTTP_500"),
         });
       }
+      user.password = undefined;
 
-      user!.token = token;
+      return res.json({
+        status: 1,
+        message: { user, token },
+      });
+    } else {
+      return res.status(400).json({
+        status: 0,
+        message: req.t("AUTH.ERROR.INCORRECT_CREDENTIALS"),
+      });
+    }
+  });
+});
+
+app.post(
+  "/auth/register",
+  body("email").isEmail().normalizeEmail(),
+  body("password").not().isEmpty(),
+  body("firstName").not().isEmpty().trim().escape(),
+  body("lastName").not().isEmpty().trim().escape(),
+  async (req, res) => {
+    const result = validationResult(req);
+    if (!result.isEmpty()) {
+      return res
+        .status(400)
+        .json({ status: 0, message: req.t("ERROR.VALIDATION") });
+    }
+    const { email, password } = req.body;
+
+    let user = await User.findOne({ email });
+    if (user) {
+      return res
+        .status(400)
+        .json({ status: 0, message: req.t("AUTH.ERROR.USER_EXISTS") });
+    } else {
+      let user = new User({ ...req.body });
+      user.password = await hashPassword(password);
       await user.save();
       user.password = undefined;
 
@@ -124,27 +172,6 @@ app.post("/auth/login", async (req, res) => {
         status: 1,
         message: { user },
       });
-    } else {
-      return res.json({ status: 0, message: "Incorrect Email or Password" });
     }
-  });
-});
-
-app.post("/auth/register", async (req, res) => {
-  const { email, password, firstName, lastName } = req.body;
-
-  let user = await User.findOne({ email });
-  if (user) {
-    return res.json({ status: 0, message: "User already exists" });
-  } else {
-    let user = new User({ email, password, firstName, lastName });
-    user.password = await hashPassword(password);
-    await user.save();
-    user.password = undefined;
-
-    return res.json({
-      status: 1,
-      message: { user },
-    });
   }
-});
+);

@@ -1,8 +1,8 @@
 import express from "express";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
-import rabbitMQ from "./common/rabbitmq/rabbitmq";
 
+import rabbitMQ from "./common/rabbitmq/rabbitmq";
 import logger from "./common/logger/logger";
 import validateId from "./common/mongo/idValidation";
 import i18nextexpress from "./common/locales/localize";
