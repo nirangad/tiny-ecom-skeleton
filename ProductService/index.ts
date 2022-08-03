@@ -1,4 +1,5 @@
 import express from "express";
+import { body } from "express-validator";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 
@@ -86,47 +87,13 @@ app.delete("/product/:id", isAuthenticated, validateId, async (req, res) => {
   );
 });
 
-app.post("/product", isAuthenticated, async (req, res) => {
-  const productPayload = req.body.product;
-  Product.create(productPayload, (err: any, product: any) => {
-    if (err) {
-      res.status(500);
-      if (err.code == 11000) {
-        return res.json({
-          status: 0,
-          message: {
-            error: req.t("PRODUCT.ERROR.UNIQUE_FIELDS"),
-            fields: err.keyValue,
-          },
-        });
-      }
-      return res.json({ status: 0, message: req.t("HTTP_500") });
-    }
-    return res.json({ status: 1, message: product });
-  });
-});
-
-app.put("/product/:id", isAuthenticated, validateId, async (req, res) => {
-  const productPayload = req.body.product;
-  Product.findOne({ _id: req.params.id }, (err: any, product: any) => {
-    if (err) {
-      return res.status(500).json({ status: 0, message: req.t("HTTP_500") });
-    }
-
-    if (!product) {
-      return res.json({
-        status: 0,
-        message: req.t("PRODUCT.ERROR.NO_PRODUCT"),
-      });
-    }
-
-    Object.keys(productPayload).forEach(function (key) {
-      if (productPayload[key] !== null || productPayload[key] !== undefined) {
-        product[key] = productPayload[key];
-      }
-    });
-
-    product.save((err: any, product: any) => {
+app.post(
+  "/product",
+  isAuthenticated,
+  body("*.*").escape(),
+  async (req, res) => {
+    const productPayload = req.body.product;
+    Product.create(productPayload, (err: any, product: any) => {
       if (err) {
         res.status(500);
         if (err.code == 11000) {
@@ -142,5 +109,50 @@ app.put("/product/:id", isAuthenticated, validateId, async (req, res) => {
       }
       return res.json({ status: 1, message: product });
     });
-  });
-});
+  }
+);
+
+app.put(
+  "/product/:id",
+  isAuthenticated,
+  validateId,
+  body("*.*").escape(),
+  async (req, res) => {
+    const productPayload = req.body.product;
+    Product.findOne({ _id: req.params!.id }, (err: any, product: any) => {
+      if (err) {
+        return res.status(500).json({ status: 0, message: req.t("HTTP_500") });
+      }
+
+      if (!product) {
+        return res.json({
+          status: 0,
+          message: req.t("PRODUCT.ERROR.NO_PRODUCT"),
+        });
+      }
+
+      Object.keys(productPayload).forEach(function (key) {
+        if (productPayload[key] !== null || productPayload[key] !== undefined) {
+          product[key] = productPayload[key];
+        }
+      });
+
+      product.save((err: any, product: any) => {
+        if (err) {
+          res.status(500);
+          if (err.code == 11000) {
+            return res.json({
+              status: 0,
+              message: {
+                error: req.t("PRODUCT.ERROR.UNIQUE_FIELDS"),
+                fields: err.keyValue,
+              },
+            });
+          }
+          return res.json({ status: 0, message: req.t("HTTP_500") });
+        }
+        return res.json({ status: 1, message: product });
+      });
+    });
+  }
+);

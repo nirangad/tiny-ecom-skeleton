@@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 var _a, _b, _c;
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
+const express_validator_1 = require("express-validator");
 const dotenv_1 = __importDefault(require("dotenv"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const rabbitmq_1 = __importDefault(require("./common/rabbitmq/rabbitmq"));
@@ -72,7 +73,7 @@ app.delete("/product/:id", is_authenticated_1.default, idValidation_1.default, a
         });
     });
 });
-app.post("/product", is_authenticated_1.default, async (req, res) => {
+app.post("/product", is_authenticated_1.default, express_validator_1.body("*.*").escape(), async (req, res) => {
     const productPayload = req.body.product;
     Product_model_1.default.create(productPayload, (err, product) => {
         if (err) {
@@ -91,7 +92,7 @@ app.post("/product", is_authenticated_1.default, async (req, res) => {
         return res.json({ status: 1, message: product });
     });
 });
-app.put("/product/:id", is_authenticated_1.default, idValidation_1.default, async (req, res) => {
+app.put("/product/:id", is_authenticated_1.default, idValidation_1.default, express_validator_1.body("*.*").escape(), async (req, res) => {
     const productPayload = req.body.product;
     Product_model_1.default.findOne({ _id: req.params.id }, (err, product) => {
         if (err) {
