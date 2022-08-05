@@ -8,7 +8,7 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const { Schema } = mongoose_1.default;
 exports.productSchema = new Schema({
     name: { type: String, required: true },
-    code: { type: String, required: true, unique: true },
+    code: { type: String, required: true },
     description: String,
     purchasePrice: { type: Number, required: true },
     retailPrice: { type: Number, required: true },

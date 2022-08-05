@@ -7,6 +7,7 @@ import jwt from "jsonwebtoken";
 
 import rabbitMQ from "./common/rabbitmq/rabbitmq";
 import logger from "./common/logger/logger";
+import validateId from "./common/mongo/idValidation";
 import i18nextexpress from "./common/locales/localize";
 import isAuthenticated from "@nirangad/is-authenticated";
 
@@ -72,7 +73,7 @@ app.delete("/auth", isAuthenticated, (req: any, res) => {
       }
 
       if (data.deletedCount == 0) {
-        return res.status(400).json({
+        return res.status(404).json({
           status: 0,
           message: req.t("AUTH.ERROR.NO_USER"),
         });
@@ -90,6 +91,31 @@ app.get("/auth/users/all", isAuthenticated, async (_req, res) => {
   const users = await User.find({});
   return res.json({ status: 1, message: users });
 });
+
+app.get("/auth/users/current", isAuthenticated, async (req: any, res) => {
+  const user = await User.findOne({ email: req.user.email });
+  if (!user) {
+    return res
+      .status(404)
+      .json({ status: 0, message: req.t("AUTH.ERROR.NO_USER") });
+  }
+  return res.json({ status: 1, message: user });
+});
+
+app.get(
+  "/auth/users/:id",
+  isAuthenticated,
+  validateId,
+  async (req: any, res) => {
+    const user = await User.findById(req.params.id);
+    if (!user) {
+      return res
+        .status(404)
+        .json({ status: 0, message: req.t("AUTH.ERROR.NO_USER") });
+    }
+    return res.json({ status: 1, message: user });
+  }
+);
 
 app.post("/auth/login", body("email").isEmail(), async (req, res) => {
   const result = validationResult(req);
@@ -151,9 +177,12 @@ app.post(
   async (req, res) => {
     const result = validationResult(req);
     if (!result.isEmpty()) {
-      return res
-        .status(400)
-        .json({ status: 0, message: req.t("ERROR.VALIDATION") });
+      return res.status(400).json({
+        status: 0,
+        message: `${req.t(
+          "AUTH.ERROR.REQUIRED.MANDATORY_FIELDS"
+        )} - email, password, firstName & lastName`,
+      });
     }
     const { email, password } = req.body;
 

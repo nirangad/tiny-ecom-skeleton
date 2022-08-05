@@ -12,6 +12,7 @@ const bcrypt_1 = __importDefault(require("bcrypt"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const rabbitmq_1 = __importDefault(require("./common/rabbitmq/rabbitmq"));
 const logger_1 = __importDefault(require("./common/logger/logger"));
+const idValidation_1 = __importDefault(require("./common/mongo/idValidation"));
 const localize_1 = __importDefault(require("./common/locales/localize"));
 const is_authenticated_1 = __importDefault(require("@nirangad/is-authenticated"));
 const User_model_1 = __importDefault(require("./models/User.model"));
@@ -58,7 +59,7 @@ app.delete("/auth", is_authenticated_1.default, (req, res) => {
             });
         }
         if (data.deletedCount == 0) {
-            return res.status(400).json({
+            return res.status(404).json({
                 status: 0,
                 message: req.t("AUTH.ERROR.NO_USER"),
             });
@@ -72,6 +73,24 @@ app.delete("/auth", is_authenticated_1.default, (req, res) => {
 app.get("/auth/users/all", is_authenticated_1.default, async (_req, res) => {
     const users = await User_model_1.default.find({});
     return res.json({ status: 1, message: users });
+});
+app.get("/auth/users/current", is_authenticated_1.default, async (req, res) => {
+    const user = await User_model_1.default.findOne({ email: req.user.email });
+    if (!user) {
+        return res
+            .status(404)
+            .json({ status: 0, message: req.t("AUTH.ERROR.NO_USER") });
+    }
+    return res.json({ status: 1, message: user });
+});
+app.get("/auth/users/:id", is_authenticated_1.default, idValidation_1.default, async (req, res) => {
+    const user = await User_model_1.default.findById(req.params.id);
+    if (!user) {
+        return res
+            .status(404)
+            .json({ status: 0, message: req.t("AUTH.ERROR.NO_USER") });
+    }
+    return res.json({ status: 1, message: user });
 });
 app.post("/auth/login", express_validator_1.body("email").isEmail(), async (req, res) => {
     const result = express_validator_1.validationResult(req);
@@ -118,9 +137,10 @@ app.post("/auth/login", express_validator_1.body("email").isEmail(), async (req,
 app.post("/auth/register", express_validator_1.body("email").isEmail().normalizeEmail(), express_validator_1.body("password").not().isEmpty(), express_validator_1.body("firstName").not().isEmpty().trim().escape(), express_validator_1.body("lastName").not().isEmpty().trim().escape(), async (req, res) => {
     const result = express_validator_1.validationResult(req);
     if (!result.isEmpty()) {
-        return res
-            .status(400)
-            .json({ status: 0, message: req.t("ERROR.VALIDATION") });
+        return res.status(400).json({
+            status: 0,
+            message: `${req.t("AUTH.ERROR.REQUIRED.MANDATORY_FIELDS")} - email, password, firstName & lastName`,
+        });
     }
     const { email, password } = req.body;
     let user = await User_model_1.default.findOne({ email });

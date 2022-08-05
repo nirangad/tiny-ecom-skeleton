@@ -1,4 +1,5 @@
 {
+  "HTTP_401": "Unbefugt..!",
   "HTTP_500": "Etwas ist schief gelaufen..!",
   "ERROR": {
     "VALIDATION": "Ungültige Daten angegeben"
@@ -12,7 +13,8 @@
       "INCORRECT_CREDENTIALS": "Falsche Email oder Passwort",
       "UNIQUE_FIELDS": "Erwähnte Felder des Benutzers müssen eindeutig sein",
       "REQUIRED": {
-        "EMAIL_PASSWORD": "E-Mail und Passwort erforderlich"
+        "EMAIL_PASSWORD": "E-Mail und Passwort erforderlich",
+        "MANDATORY_FIELDS": "Bitte füllen Sie alle Pflichtfelder aus"
       }
     }
   },
@@ -24,7 +26,11 @@
       "UNIQUE_FIELDS": "Erwähnte Felder im Produkt müssen eindeutig sein"
     }
   },
-  "SHOPPINGCART": {
-    "WELCOME": "Willkommen beim Warenkorb-Service"
+  "SHOPPING_CART": {
+    "WELCOME": "Willkommen beim Warenkorb-Service",
+    "CART_DELETED": "Warenkorb gelöscht",
+    "ERROR": {
+      "NO_CART": "Warenkorb existiert nicht"
+    }
   }
 }

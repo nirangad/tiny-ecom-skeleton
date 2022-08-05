@@ -5,13 +5,15 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 var _a, _b, _c;
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-const express_validator_1 = require("express-validator");
 const dotenv_1 = __importDefault(require("dotenv"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const rabbitmq_1 = __importDefault(require("./common/rabbitmq/rabbitmq"));
 const logger_1 = __importDefault(require("./common/logger/logger"));
+const fetchCurrentUser_1 = __importDefault(require("./common/mongo/fetchCurrentUser"));
 const localize_1 = __importDefault(require("./common/locales/localize"));
 const is_authenticated_1 = __importDefault(require("@nirangad/is-authenticated"));
+const ShoppingCart_model_1 = __importDefault(require("./models/ShoppingCart.model"));
+const ShoppingCart_service_1 = __importDefault(require("./services/ShoppingCart.service"));
 // DotEnv Configuration
 dotenv_1.default.config();
 // Express Server
@@ -34,10 +36,73 @@ app.listen(port, async () => {
 });
 // Express Routes
 app.get("/shopping-cart", is_authenticated_1.default, (req, res) => {
-    return res.json({ status: 1, message: req.t("SHOPPINGCART.WELCOME") });
+    return res.json({ status: 1, message: req.t("SHOPPING_CART.WELCOME") });
 });
-app.post("/shopping-cart", is_authenticated_1.default, express_validator_1.body("*.*").escape(), async (req, res) => {
-    const productPayload = req.body.product;
-    return res.json({ status: 1, message: "Welcome to Product create Service" });
+app.get("/shopping-cart/active", is_authenticated_1.default, fetchCurrentUser_1.default, async (req, res) => {
+    const currentUser = req.currentUser;
+    ShoppingCart_model_1.default.findOne({ user: currentUser._id }, (err, shoppingCart) => {
+        if (err) {
+            return res
+                .status(500)
+                .json({ status: 0, message: req.t("HTTP_500") });
+        }
+        if (!shoppingCart) {
+            return res
+                .status(404)
+                .json({ status: 0, message: req.t("SHOPPING_CART.ERROR.NO_CART") });
+        }
+        return res.json({ status: 1, message: { shoppingCart } });
+    });
+});
+app.post("/shopping-cart", is_authenticated_1.default, fetchCurrentUser_1.default, async (req, res) => {
+    const currentUser = req.currentUser;
+    let shoppingCart;
+    let shoppingCartData = {
+        user: currentUser,
+        items: req.body.shoppingCart,
+    };
+    shoppingCart = await ShoppingCart_service_1.default.create(shoppingCartData);
+    if (!shoppingCart) {
+        return res.status(500).json({ status: 0, message: req.t("HTTP_500") });
+    }
+    return res.json({
+        status: 1,
+        message: shoppingCart,
+    });
+});
+app.put("/shopping-cart", is_authenticated_1.default, fetchCurrentUser_1.default, async (req, res) => {
+    const currentUser = req.currentUser;
+    const shoppingCartData = {
+        id: req.body.shoppingCart.id,
+        user: currentUser,
+        items: req.body.shoppingCart.items,
+    };
+    const shoppingCart = await ShoppingCart_service_1.default.update(shoppingCartData);
+    if (!shoppingCart) {
+        return res
+            .status(404)
+            .json({ status: 0, message: req.t("SHOPPING_CART.ERROR.NO_CART") });
+    }
+    return res.json({
+        status: 1,
+        message: shoppingCart,
+    });
+});
+app.delete("/shopping-cart", is_authenticated_1.default, fetchCurrentUser_1.default, async (req, res) => {
+    const currentUser = req.currentUser;
+    ShoppingCart_service_1.default
+        .remove(currentUser)
+        .then((data) => {
+        if (data.deletedCount == 0) {
+            return res.status(404).json({
+                status: 0,
+                message: req.t("SHOPPING_CART.ERROR.NO_CART"),
+            });
+        }
+        return res.json({
+            status: 1,
+            message: req.t("SHOPPING_CART.CART_DELETED"),
+        });
+    });
 });
 //# sourceMappingURL=index.js.map

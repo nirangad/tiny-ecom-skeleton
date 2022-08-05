@@ -1,4 +1,5 @@
 {
+  "HTTP_401": "Unauthorized..!",
   "HTTP_500": "Something went wrong..!",
   "ERROR": {
     "VALIDATION": "Invalid data provided"
@@ -12,7 +13,8 @@
       "INCORRECT_CREDENTIALS": "Incorrect Email or Password",
       "UNIQUE_FIELDS": "Mentioned fields in the Product must be unique",
       "REQUIRED": {
-        "EMAIL_PASSWORD": "Email and Password required"
+        "EMAIL_PASSWORD": "Email and Password required",
+        "MANDATORY_FIELDS": "Please provide all the mandatory fields"
       }
     }
   },
@@ -24,7 +26,11 @@
       "UNIQUE_FIELDS": "Mentioned fields in the Product must be unique"
     }
   },
-  "SHOPPINGCART": {
-    "WELCOME": "Welcome to Shopping Cart Service"
+  "SHOPPING_CART": {
+    "WELCOME": "Welcome to Shopping Cart Service",
+    "CART_DELETED": "Shopping Cart deleted",
+    "ERROR": {
+      "NO_CART": "Shopping Cart does not exist"
+    }
   }
 }

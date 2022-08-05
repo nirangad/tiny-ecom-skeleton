@@ -77,7 +77,7 @@ app.post("/product", is_authenticated_1.default, express_validator_1.body("*.*")
     const productPayload = req.body.product;
     Product_model_1.default.create(productPayload, (err, product) => {
         if (err) {
-            res.status(500);
+            res.status(400);
             if (err.code == 11000) {
                 return res.json({
                     status: 0,
@@ -99,7 +99,7 @@ app.put("/product/:id", is_authenticated_1.default, idValidation_1.default, expr
             return res.status(500).json({ status: 0, message: req.t("HTTP_500") });
         }
         if (!product) {
-            return res.json({
+            return res.status(404).json({
                 status: 0,
                 message: req.t("PRODUCT.ERROR.NO_PRODUCT"),
             });

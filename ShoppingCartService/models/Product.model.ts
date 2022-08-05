@@ -2,7 +2,7 @@ import mongoose, { mongo } from "mongoose";
 const { Schema } = mongoose;
 
 export interface IProduct {
-  id?: string;
+  _id?: string;
   name: string;
   code: string;
   description?: string;

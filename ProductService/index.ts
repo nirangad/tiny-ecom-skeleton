@@ -95,7 +95,7 @@ app.post(
     const productPayload = req.body.product;
     Product.create(productPayload, (err: any, product: any) => {
       if (err) {
-        res.status(500);
+        res.status(400);
         if (err.code == 11000) {
           return res.json({
             status: 0,
@@ -125,7 +125,7 @@ app.put(
       }
 
       if (!product) {
-        return res.json({
+        return res.status(404).json({
           status: 0,
           message: req.t("PRODUCT.ERROR.NO_PRODUCT"),
         });
