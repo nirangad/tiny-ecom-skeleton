@@ -5,6 +5,7 @@ WORKDIR /app
 COPY package.json ./
 COPY package-lock.json ./
 COPY tsconfig.json ./
+COPY .env ./
 
 RUN npm install
 RUN npm install --location=global typescript

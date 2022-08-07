@@ -40,7 +40,9 @@ app.get("/product", is_authenticated_1.default, (req, res) => {
 });
 app.get("/product/all", is_authenticated_1.default, async (req, res) => {
     Product_model_1.default.find({}, (err, products) => {
+        console.log("INFO (/product/all[GET]) Product.find({}): ", products);
         if (err) {
+            console.log("ERROR (/product/all[GET]) Product.find({}): ", err);
             return res.status(500).json({ status: 0, message: req.t("HTTP_500") });
         }
         return res.json({ status: 1, message: products });
@@ -56,6 +58,7 @@ app.get("/product/:id", is_authenticated_1.default, idValidation_1.default, asyn
 app.delete("/product/:id", is_authenticated_1.default, idValidation_1.default, async (req, res) => {
     Product_model_1.default.deleteOne({ _id: req.params.id }, (err, data) => {
         if (err) {
+            console.log("ERROR (/product/:id[DELETE]) Product.deleteOne({}): ", err);
             return res.json({
                 status: 0,
                 message: req.t("HTTP_500"),
@@ -77,9 +80,8 @@ app.post("/product", is_authenticated_1.default, express_validator_1.body("*.*")
     const productPayload = req.body.product;
     Product_model_1.default.create(productPayload, (err, product) => {
         if (err) {
-            res.status(400);
             if (err.code == 11000) {
-                return res.json({
+                return res.status(400).json({
                     status: 0,
                     message: {
                         error: req.t("PRODUCT.ERROR.UNIQUE_FIELDS"),
@@ -87,7 +89,8 @@ app.post("/product", is_authenticated_1.default, express_validator_1.body("*.*")
                     },
                 });
             }
-            return res.json({ status: 0, message: req.t("HTTP_500") });
+            console.log("ERROR (/product[POST]) Product.create: ", err);
+            return res.status(500).json({ status: 0, message: req.t("HTTP_500") });
         }
         return res.json({ status: 1, message: product });
     });
@@ -96,6 +99,7 @@ app.put("/product/:id", is_authenticated_1.default, idValidation_1.default, expr
     const productPayload = req.body.product;
     Product_model_1.default.findOne({ _id: req.params.id }, (err, product) => {
         if (err) {
+            console.log("ERROR (/product/:id[PUT]) Product.findOne({}): ", err);
             return res.status(500).json({ status: 0, message: req.t("HTTP_500") });
         }
         if (!product) {
@@ -111,9 +115,8 @@ app.put("/product/:id", is_authenticated_1.default, idValidation_1.default, expr
         });
         product.save((err, product) => {
             if (err) {
-                res.status(500);
                 if (err.code == 11000) {
-                    return res.json({
+                    return res.status(400).json({
                         status: 0,
                         message: {
                             error: req.t("PRODUCT.ERROR.UNIQUE_FIELDS"),
@@ -121,7 +124,10 @@ app.put("/product/:id", is_authenticated_1.default, idValidation_1.default, expr
                         },
                     });
                 }
-                return res.json({ status: 0, message: req.t("HTTP_500") });
+                console.log("ERROR (/product/:id[PUT]) product.save: ", err);
+                return res
+                    .status(500)
+                    .json({ status: 0, message: req.t("HTTP_500") });
             }
             return res.json({ status: 1, message: product });
         });

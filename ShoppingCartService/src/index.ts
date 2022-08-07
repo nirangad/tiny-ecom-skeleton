@@ -16,7 +16,7 @@ import shoppingCartService from "./services/ShoppingCart.service";
 dotenv.config();
 
 // Express Server
-const port = process.env.SERVER_PORT ?? 8081;
+const port = process.env.SERVER_PORT ?? 8082;
 const app = express();
 app.use(express.json());
 

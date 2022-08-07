@@ -40,13 +40,22 @@ app.listen(port, async () => {
 });
 
 // Express Routes
-app.get("/product", isAuthenticated, (req, res) => {
-  return res.json({ status: 1, message: req.t("PRODUCT.WELCOME") });
-});
+app.get(
+  "/product",
+  isAuthenticated,
+  (
+    req: { t: (arg0: string) => any },
+    res: { json: (arg0: { status: number; message: any }) => any }
+  ) => {
+    return res.json({ status: 1, message: req.t("PRODUCT.WELCOME") });
+  }
+);
 
-app.get("/product/all", isAuthenticated, async (req, res) => {
+app.get("/product/all", isAuthenticated, async (req: any, res) => {
+  console.log("INFO (/product/all[GET]) User: ", req.user);
   Product.find({}, (err: any, products: any) => {
     if (err) {
+      console.log("ERROR (/product/all[GET]) Product.find({}): ", err);
       return res.status(500).json({ status: 0, message: req.t("HTTP_500") });
     }
     return res.json({ status: 1, message: products });
@@ -66,6 +75,10 @@ app.delete("/product/:id", isAuthenticated, validateId, async (req, res) => {
     { _id: req.params.id },
     (err: any, data: { deletedCount: number }) => {
       if (err) {
+        console.log(
+          "ERROR (/product/:id[DELETE]) Product.deleteOne({}): ",
+          err
+        );
         return res.json({
           status: 0,
           message: req.t("HTTP_500"),
@@ -95,9 +108,8 @@ app.post(
     const productPayload = req.body.product;
     Product.create(productPayload, (err: any, product: any) => {
       if (err) {
-        res.status(400);
         if (err.code == 11000) {
-          return res.json({
+          return res.status(400).json({
             status: 0,
             message: {
               error: req.t("PRODUCT.ERROR.UNIQUE_FIELDS"),
@@ -105,7 +117,8 @@ app.post(
             },
           });
         }
-        return res.json({ status: 0, message: req.t("HTTP_500") });
+        console.log("ERROR (/product[POST]) Product.create: ", err);
+        return res.status(500).json({ status: 0, message: req.t("HTTP_500") });
       }
       return res.json({ status: 1, message: product });
     });
@@ -121,6 +134,7 @@ app.put(
     const productPayload = req.body.product;
     Product.findOne({ _id: req.params!.id }, (err: any, product: any) => {
       if (err) {
+        console.log("ERROR (/product/:id[PUT]) Product.findOne({}): ", err);
         return res.status(500).json({ status: 0, message: req.t("HTTP_500") });
       }
 
@@ -139,9 +153,8 @@ app.put(
 
       product.save((err: any, product: any) => {
         if (err) {
-          res.status(500);
           if (err.code == 11000) {
-            return res.json({
+            return res.status(400).json({
               status: 0,
               message: {
                 error: req.t("PRODUCT.ERROR.UNIQUE_FIELDS"),
@@ -149,7 +162,10 @@ app.put(
               },
             });
           }
-          return res.json({ status: 0, message: req.t("HTTP_500") });
+          console.log("ERROR (/product/:id[PUT]) product.save: ", err);
+          return res
+            .status(500)
+            .json({ status: 0, message: req.t("HTTP_500") });
         }
         return res.json({ status: 1, message: product });
       });

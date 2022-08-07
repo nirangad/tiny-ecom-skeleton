@@ -17,7 +17,7 @@ const ShoppingCart_service_1 = __importDefault(require("./services/ShoppingCart.
 // DotEnv Configuration
 dotenv_1.default.config();
 // Express Server
-const port = (_a = process.env.SERVER_PORT) !== null && _a !== void 0 ? _a : 8081;
+const port = (_a = process.env.SERVER_PORT) !== null && _a !== void 0 ? _a : 8082;
 const app = express_1.default();
 app.use(express_1.default.json());
 // Localization
