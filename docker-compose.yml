@@ -47,8 +47,9 @@ services:
       - "rabbitmq"
     environment:
       - RABBITMQ_URL=amqp://rabbitmq:5672
-      - MONGODB_URL=mongodb://mongodb:27017/auth-service
+      - MONGODB_URL=mongodb://mongodb:27017/product-service
       - SECRET_KEY=3FBE9D2EF4
+      - AUTH_SERVER=http://auth-service:8080
 
   shopping-cart-service:
     build: ./ShoppingCartService
@@ -63,9 +64,9 @@ services:
       - "rabbitmq"
     environment:
       - RABBITMQ_URL=amqp://rabbitmq:5672
-      - MONGODB_URL=mongodb://mongodb:27017/auth-service
+      - MONGODB_URL=mongodb://mongodb:27017/shopping-cart-service
       - SECRET_KEY=3FBE9D2EF4
-      - AUTH_SERVER=http://auth-service:8080/
+      - AUTH_SERVER=http://auth-service:8080
 
 networks:
   erp-microservices-network: {}
