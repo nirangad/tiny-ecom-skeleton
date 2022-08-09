@@ -40,9 +40,7 @@ app.get("/product", is_authenticated_1.default, (req, res) => {
 });
 app.get("/product/all", is_authenticated_1.default, async (req, res) => {
     Product_model_1.default.find({}, (err, products) => {
-        console.log("INFO (/product/all[GET]) Product.find({}): ", products);
         if (err) {
-            console.log("ERROR (/product/all[GET]) Product.find({}): ", err);
             return res.status(500).json({ status: 0, message: req.t("HTTP_500") });
         }
         return res.json({ status: 1, message: products });
@@ -89,7 +87,6 @@ app.post("/product", is_authenticated_1.default, express_validator_1.body("*.*")
                     },
                 });
             }
-            console.log("ERROR (/product[POST]) Product.create: ", err);
             return res.status(500).json({ status: 0, message: req.t("HTTP_500") });
         }
         return res.json({ status: 1, message: product });
@@ -99,7 +96,6 @@ app.put("/product/:id", is_authenticated_1.default, idValidation_1.default, expr
     const productPayload = req.body.product;
     Product_model_1.default.findOne({ _id: req.params.id }, (err, product) => {
         if (err) {
-            console.log("ERROR (/product/:id[PUT]) Product.findOne({}): ", err);
             return res.status(500).json({ status: 0, message: req.t("HTTP_500") });
         }
         if (!product) {
@@ -124,7 +120,6 @@ app.put("/product/:id", is_authenticated_1.default, idValidation_1.default, expr
                         },
                     });
                 }
-                console.log("ERROR (/product/:id[PUT]) product.save: ", err);
                 return res
                     .status(500)
                     .json({ status: 0, message: req.t("HTTP_500") });

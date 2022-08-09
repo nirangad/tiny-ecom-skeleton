@@ -6,7 +6,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const axios_1 = __importDefault(require("axios"));
 async function fetchCurrentUser(req, res, next) {
     const getUserUrl = `${process.env.AUTH_SERVER}/auth/users/current`;
-    console.log(`Get URL(fetchUser): ${process.env.AUTH_SERVER}/auth/users/current`);
     if (!req.user || !req.user.email) {
         return res.status(401).json({ status: 0, message: "Unauthorized" });
     }

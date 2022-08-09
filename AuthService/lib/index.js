@@ -94,7 +94,6 @@ app.get("/auth/users/:id", is_authenticated_1.default, idValidation_1.default, a
 });
 app.post("/auth/login", express_validator_1.body("email").isEmail(), async (req, res) => {
     const result = express_validator_1.validationResult(req);
-    console.log("Login validation: ", result);
     if (!result.isEmpty()) {
         return res
             .status(400)
@@ -108,7 +107,6 @@ app.post("/auth/login", express_validator_1.body("email").isEmail(), async (req,
         });
     }
     User_model_1.default.findOne({ email }, "+password", async (err, user) => {
-        console.log("User findOne error: ", err);
         if (err) {
             return res.status(500).json({ status: 0, message: req.t("HTTP_500") });
         }
