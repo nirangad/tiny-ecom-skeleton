@@ -119,7 +119,6 @@ app.get(
 
 app.post("/auth/login", body("email").isEmail(), async (req, res) => {
   const result = validationResult(req);
-  console.log("Login validation: ", result);
   if (!result.isEmpty()) {
     return res
       .status(400)
@@ -135,7 +134,6 @@ app.post("/auth/login", body("email").isEmail(), async (req, res) => {
   }
 
   User.findOne({ email }, "+password", async (err: any, user: any) => {
-    console.log("User findOne error: ", err);
     if (err) {
       return res.status(500).json({ status: 0, message: req.t("HTTP_500") });
     }

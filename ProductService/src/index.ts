@@ -52,10 +52,8 @@ app.get(
 );
 
 app.get("/product/all", isAuthenticated, async (req: any, res) => {
-  console.log("INFO (/product/all[GET]) User: ", req.user);
   Product.find({}, (err: any, products: any) => {
     if (err) {
-      console.log("ERROR (/product/all[GET]) Product.find({}): ", err);
       return res.status(500).json({ status: 0, message: req.t("HTTP_500") });
     }
     return res.json({ status: 1, message: products });
@@ -117,7 +115,6 @@ app.post(
             },
           });
         }
-        console.log("ERROR (/product[POST]) Product.create: ", err);
         return res.status(500).json({ status: 0, message: req.t("HTTP_500") });
       }
       return res.json({ status: 1, message: product });
@@ -134,7 +131,6 @@ app.put(
     const productPayload = req.body.product;
     Product.findOne({ _id: req.params!.id }, (err: any, product: any) => {
       if (err) {
-        console.log("ERROR (/product/:id[PUT]) Product.findOne({}): ", err);
         return res.status(500).json({ status: 0, message: req.t("HTTP_500") });
       }
 
@@ -162,7 +158,6 @@ app.put(
               },
             });
           }
-          console.log("ERROR (/product/:id[PUT]) product.save: ", err);
           return res
             .status(500)
             .json({ status: 0, message: req.t("HTTP_500") });
