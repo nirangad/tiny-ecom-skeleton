@@ -29,6 +29,7 @@
   "SHOPPING_CART": {
     "WELCOME": "Welcome to Shopping Cart Service",
     "CART_DELETED": "Shopping Cart deleted",
+    "CHECKOUT_SUCCESS": "Your Order will be generated in a moment",
     "ERROR": {
       "NO_CART": "Shopping Cart does not exist"
     }

@@ -53,6 +53,12 @@ const remove = async (user) => {
         user: user._id,
     });
 };
-const checkout = async () => { };
+const checkout = async (user, rabbitInstance) => {
+    let shoppingCart = await ShoppingCart_model_1.default.findOne({ user: user._id });
+    if (!shoppingCart) {
+        return null;
+    }
+    rabbitInstance.channel.sendToQueue(rabbitInstance.queue, Buffer.from(JSON.stringify(shoppingCart)));
+};
 exports.default = { read, create, update, remove, checkout };
 //# sourceMappingURL=ShoppingCart.service.js.map

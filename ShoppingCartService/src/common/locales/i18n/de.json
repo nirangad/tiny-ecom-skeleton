@@ -29,6 +29,7 @@
   "SHOPPING_CART": {
     "WELCOME": "Willkommen beim Warenkorb-Service",
     "CART_DELETED": "Warenkorb gelöscht",
+    "CHECKOUT_SUCCESS": "Ihre Bestellung wird in Kürze generiert",
     "ERROR": {
       "NO_CART": "Warenkorb existiert nicht"
     }

@@ -23,8 +23,15 @@ app.use(express_1.default.json());
 app.use(localize_1.default);
 // Logger
 app.use(logger_1.default());
+const startServer = async () => { };
+startServer();
 // RabbitMQ connection
-rabbitmq_1.default.connect((_b = process.env.RABBITMQ_PRODUCT_QUEUE) !== null && _b !== void 0 ? _b : "rabbitmq@product");
+let rabbitInstance;
+rabbitmq_1.default
+    .connect((_b = process.env.RABBITMQ_PRODUCT_QUEUE) !== null && _b !== void 0 ? _b : "rabbitmq@product")
+    .then((data) => {
+    rabbitInstance = data;
+});
 // MongoDB Connection
 const mongoDBURL = (_c = process.env.MONGODB_URL) !== null && _c !== void 0 ? _c : "mongodb://localhost:27017/shopping-cart-service";
 mongoose_1.default.connect(mongoDBURL, () => {
@@ -83,23 +90,26 @@ app.put("/shopping-cart", is_authenticated_1.default, fetchCurrentUser_1.default
 });
 app.delete("/shopping-cart", is_authenticated_1.default, fetchCurrentUser_1.default, async (req, res) => {
     const currentUser = req.currentUser;
-    ShoppingCart_service_1.default
-        .remove(currentUser)
-        .then((data) => {
-        if (data.deletedCount == 0) {
-            return res.status(404).json({
-                status: 0,
-                message: req.t("SHOPPING_CART.ERROR.NO_CART"),
-            });
-        }
-        return res.json({
-            status: 1,
-            message: req.t("SHOPPING_CART.CART_DELETED"),
+    const data = await ShoppingCart_service_1.default.remove(currentUser);
+    if (data.deletedCount == 0) {
+        return res.status(404).json({
+            status: 0,
+            message: req.t("SHOPPING_CART.ERROR.NO_CART"),
         });
+    }
+    return res.json({
+        status: 1,
+        message: req.t("SHOPPING_CART.CART_DELETED"),
     });
 });
 app.post("/shopping-cart/checkout", is_authenticated_1.default, fetchCurrentUser_1.default, async (req, res) => {
     const currentUser = req.currentUser;
-    ShoppingCart_service_1.default.checkout();
+    const data = await ShoppingCart_service_1.default.checkout(currentUser, rabbitInstance);
+    if (!data) {
+        return res.status(404).json({
+            status: 0,
+            message: req.t("SHOPPING_CART.ERROR.NO_CART"),
+        });
+    }
 });
 //# sourceMappingURL=index.js.map

@@ -1,3 +1,4 @@
+import { Channel } from "amqplib";
 import ShoppingCart, {
   IShoppingCart,
   IShoppingCartItem,
@@ -64,6 +65,22 @@ const remove = async (user: IUser) => {
   });
 };
 
-const checkout = async () => {};
+const checkout = async (
+  user: IUser,
+  rabbitInstance: {
+    channel: Channel;
+    queue: string;
+  }
+) => {
+  let shoppingCart = await ShoppingCart.findOne({ user: user._id });
+  if (!shoppingCart) {
+    return null;
+  }
+
+  return rabbitInstance.channel.sendToQueue(
+    rabbitInstance.queue,
+    Buffer.from(JSON.stringify({ shoppingCart, user }))
+  );
+};
 
 export default { read, create, update, remove, checkout };

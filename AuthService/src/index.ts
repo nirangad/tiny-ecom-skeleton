@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import { Channel, Connection } from "amqplib";
 
 import rabbitMQ from "./common/rabbitmq/rabbitmq";
 import logger from "./common/logger/logger";
@@ -28,7 +29,12 @@ app.use(i18nextexpress);
 app.use(logger());
 
 // RabbitMQ connection
-rabbitMQ.connect(process.env.RABBITMQ_AUTH_QUEUE ?? "rabbitmq@auth");
+let rabbitInstance: { connection: Connection; channel: Channel; queue: string };
+rabbitMQ
+  .connect(process.env.RABBITMQ_AUTH_QUEUE ?? "rabbitmq@auth")
+  .then((data) => {
+    rabbitInstance = data;
+  });
 
 // MongoDB Connection
 const mongoDBURL =

@@ -9,7 +9,7 @@ const rabbitMQ = {
     const rabbitConnection = await ampq.connect(rabbitConnectionURL);
     const rabbitChannel = await rabbitConnection.createChannel();
     await rabbitChannel.assertQueue(queue);
-    return { connection: rabbitConnection, channel: rabbitChannel };
+    return { connection: rabbitConnection, channel: rabbitChannel, queue };
   },
 };
 export default rabbitMQ;
