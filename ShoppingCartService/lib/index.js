@@ -16,7 +16,7 @@ const ShoppingCart_service_1 = __importDefault(require("./services/ShoppingCart.
 // DotEnv Configuration
 dotenv_1.default.config();
 // Express Server
-const port = (_a = process.env.SERVER_PORT) !== null && _a !== void 0 ? _a : 8082;
+const port = (_a = process.env.SHOPPINGCART_SERVER_PORT) !== null && _a !== void 0 ? _a : 8082;
 const app = express_1.default();
 app.use(express_1.default.json());
 // Localization
@@ -28,12 +28,12 @@ startServer();
 // RabbitMQ connection
 let rabbitInstance;
 rabbitmq_1.default
-    .connect((_b = process.env.RABBITMQ_PRODUCT_QUEUE) !== null && _b !== void 0 ? _b : "rabbitmq@product")
+    .connect((_b = process.env.RABBITMQ_SHOPPINGCART_QUEUE) !== null && _b !== void 0 ? _b : "rabbitmq@shoppingcart")
     .then((data) => {
     rabbitInstance = data;
 });
 // MongoDB Connection
-const mongoDBURL = (_c = process.env.MONGODB_URL) !== null && _c !== void 0 ? _c : "mongodb://localhost:27017/shopping-cart-service";
+const mongoDBURL = (_c = process.env.SHOPPINGCART_MONGODB_URL) !== null && _c !== void 0 ? _c : "mongodb://localhost:27017/shopping-cart-service";
 mongoose_1.default.connect(mongoDBURL, () => {
     console.log(`Shopping Cart DB connected`);
 });
@@ -104,12 +104,16 @@ app.delete("/shopping-cart", is_authenticated_1.default, fetchCurrentUser_1.defa
 });
 app.post("/shopping-cart/checkout", is_authenticated_1.default, fetchCurrentUser_1.default, async (req, res) => {
     const currentUser = req.currentUser;
-    const data = await ShoppingCart_service_1.default.checkout(currentUser, rabbitInstance);
-    if (!data) {
+    const queued = await ShoppingCart_service_1.default.checkout(currentUser, rabbitInstance);
+    if (!queued) {
         return res.status(404).json({
             status: 0,
             message: req.t("SHOPPING_CART.ERROR.NO_CART"),
         });
     }
+    return res.json({
+        status: 1,
+        message: req.t("SHOPPING_CART.CHECKOUT_SUCCESS"),
+    });
 });
 //# sourceMappingURL=index.js.map

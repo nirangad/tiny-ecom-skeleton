@@ -2,7 +2,6 @@
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
 const express_validator_1 = require("express-validator");
@@ -10,7 +9,6 @@ const dotenv_1 = __importDefault(require("dotenv"));
 const mongoose_1 = __importDefault(require("mongoose"));
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const rabbitmq_1 = __importDefault(require("./common/rabbitmq/rabbitmq"));
 const logger_1 = __importDefault(require("./common/logger/logger"));
 const idValidation_1 = __importDefault(require("./common/mongo/idValidation"));
 const localize_1 = __importDefault(require("./common/locales/localize"));
@@ -19,17 +17,15 @@ const User_model_1 = __importDefault(require("./models/User.model"));
 // DotEnv Configuration
 dotenv_1.default.config();
 // Express Server
-const port = process.env.SERVER_PORT || "8080";
+const port = process.env.AUTH_SERVER_PORT || "8080";
 const app = express_1.default();
 app.use(express_1.default.json());
 // Localization
 app.use(localize_1.default);
 // Logger
 app.use(logger_1.default());
-// RabbitMQ connection
-rabbitmq_1.default.connect((_a = process.env.RABBITMQ_AUTH_QUEUE) !== null && _a !== void 0 ? _a : "rabbitmq@auth");
 // MongoDB Connection
-const mongoDBURL = process.env.MONGODB_URL || "mongodb://localhost:27017/auth-service";
+const mongoDBURL = process.env.AUTH_MONGODB_URL || "mongodb://localhost:27017/auth-service";
 mongoose_1.default.connect(mongoDBURL, () => {
     console.log(`Auth Service DB connected`);
 });

@@ -1,7 +1,7 @@
 import axios from "axios";
 
 export default async function fetchCurrentUser(req: any, res: any, next: any) {
-  const getUserUrl = `${process.env.AUTH_SERVER}/auth/users/current`;
+  const getUserUrl = `http://${process.env.AUTH_SERVICE_NAME}:${process.env.AUTH_SERVER_PORT}/auth/users/current`;
   if (!req.user || !req.user.email) {
     return res.status(401).json({ status: 0, message: "Unauthorized" });
   }

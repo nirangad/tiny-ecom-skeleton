@@ -16,7 +16,7 @@ import shoppingCartService from "./services/ShoppingCart.service";
 dotenv.config();
 
 // Express Server
-const port = process.env.SERVER_PORT ?? 8082;
+const port = process.env.SHOPPINGCART_SERVER_PORT ?? 8082;
 const app = express();
 app.use(express.json());
 
@@ -32,14 +32,15 @@ startServer();
 // RabbitMQ connection
 let rabbitInstance: { connection: Connection; channel: Channel; queue: string };
 rabbitMQ
-  .connect(process.env.RABBITMQ_PRODUCT_QUEUE ?? "rabbitmq@product")
+  .connect(process.env.RABBITMQ_SHOPPINGCART_QUEUE ?? "rabbitmq@shoppingcart")
   .then((data) => {
     rabbitInstance = data;
   });
 
 // MongoDB Connection
 const mongoDBURL =
-  process.env.MONGODB_URL ?? "mongodb://localhost:27017/shopping-cart-service";
+  process.env.SHOPPINGCART_MONGODB_URL ??
+  "mongodb://localhost:27017/shopping-cart-service";
 mongoose.connect(mongoDBURL, () => {
   console.log(`Shopping Cart DB connected`);
 });

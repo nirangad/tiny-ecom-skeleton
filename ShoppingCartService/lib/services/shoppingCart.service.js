@@ -58,7 +58,7 @@ const checkout = async (user, rabbitInstance) => {
     if (!shoppingCart) {
         return null;
     }
-    rabbitInstance.channel.sendToQueue(rabbitInstance.queue, Buffer.from(JSON.stringify(shoppingCart)));
+    return rabbitInstance.channel.sendToQueue(rabbitInstance.queue, Buffer.from(JSON.stringify({ shoppingCart, user })));
 };
 exports.default = { read, create, update, remove, checkout };
 //# sourceMappingURL=ShoppingCart.service.js.map

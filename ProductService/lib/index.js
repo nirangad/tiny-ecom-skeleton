@@ -17,7 +17,7 @@ const Product_model_1 = __importDefault(require("./models/Product.model"));
 // DotEnv Configuration
 dotenv_1.default.config();
 // Express Server
-const port = (_a = process.env.SERVER_PORT) !== null && _a !== void 0 ? _a : 8081;
+const port = (_a = process.env.PRODUCT_SERVER_PORT) !== null && _a !== void 0 ? _a : 8081;
 const app = express_1.default();
 app.use(express_1.default.json());
 // Localization
@@ -27,7 +27,7 @@ app.use(logger_1.default());
 // RabbitMQ connection
 rabbitmq_1.default.connect((_b = process.env.RABBITMQ_PRODUCT_QUEUE) !== null && _b !== void 0 ? _b : "rabbitmq@product");
 // MongoDB Connection
-const mongoDBURL = (_c = process.env.MONGODB_URL) !== null && _c !== void 0 ? _c : "mongodb://localhost:27017/product-service";
+const mongoDBURL = (_c = process.env.PRODUCT_MONGODB_URL) !== null && _c !== void 0 ? _c : "mongodb://localhost:27017/product-service";
 mongoose_1.default.connect(mongoDBURL, () => {
     console.log(`Product Service DB connected`);
 });

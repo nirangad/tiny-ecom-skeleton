@@ -1,5 +1,5 @@
 # tiny-ecom-skeleton
-Tiniest E Commerce skeleton with microservices architecture with NodeJS. This is an attempt to cover basics of microservices architecture
+Tiniest E-Commerce skeleton with microservices architecture with NodeJS. This is an attempt to cover basics of microservices architecture. Many concepts/tools are being used.
 
 ## Tools and Technologies
 

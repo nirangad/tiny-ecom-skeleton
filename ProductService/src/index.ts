@@ -15,7 +15,7 @@ import Product from "./models/Product.model";
 dotenv.config();
 
 // Express Server
-const port = process.env.SERVER_PORT ?? 8081;
+const port = process.env.PRODUCT_SERVER_PORT ?? 8081;
 const app = express();
 app.use(express.json());
 
@@ -30,7 +30,8 @@ rabbitMQ.connect(process.env.RABBITMQ_PRODUCT_QUEUE ?? "rabbitmq@product");
 
 // MongoDB Connection
 const mongoDBURL =
-  process.env.MONGODB_URL ?? "mongodb://localhost:27017/product-service";
+  process.env.PRODUCT_MONGODB_URL ??
+  "mongodb://localhost:27017/product-service";
 mongoose.connect(mongoDBURL, () => {
   console.log(`Product Service DB connected`);
 });

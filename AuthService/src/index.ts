@@ -4,9 +4,7 @@ import dotenv from "dotenv";
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { Channel, Connection } from "amqplib";
 
-import rabbitMQ from "./common/rabbitmq/rabbitmq";
 import logger from "./common/logger/logger";
 import validateId from "./common/mongo/idValidation";
 import i18nextexpress from "./common/locales/localize";
@@ -18,7 +16,7 @@ import User from "./models/User.model";
 dotenv.config();
 
 // Express Server
-const port = process.env.SERVER_PORT || "8080";
+const port = process.env.AUTH_SERVER_PORT || "8080";
 const app = express();
 app.use(express.json());
 
@@ -28,17 +26,9 @@ app.use(i18nextexpress);
 // Logger
 app.use(logger());
 
-// RabbitMQ connection
-let rabbitInstance: { connection: Connection; channel: Channel; queue: string };
-rabbitMQ
-  .connect(process.env.RABBITMQ_AUTH_QUEUE ?? "rabbitmq@auth")
-  .then((data) => {
-    rabbitInstance = data;
-  });
-
 // MongoDB Connection
 const mongoDBURL =
-  process.env.MONGODB_URL || "mongodb://localhost:27017/auth-service";
+  process.env.AUTH_MONGODB_URL || "mongodb://localhost:27017/auth-service";
 mongoose.connect(mongoDBURL, () => {
   console.log(`Auth Service DB connected`);
 });

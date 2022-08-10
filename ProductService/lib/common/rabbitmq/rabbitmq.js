@@ -13,7 +13,7 @@ const rabbitMQ = {
         const rabbitConnection = await amqplib_1.default.connect(rabbitConnectionURL);
         const rabbitChannel = await rabbitConnection.createChannel();
         await rabbitChannel.assertQueue(queue);
-        return { connection: rabbitConnection, channel: rabbitChannel };
+        return { connection: rabbitConnection, channel: rabbitChannel, queue };
     },
 };
 exports.default = rabbitMQ;
