@@ -51,23 +51,14 @@ app.get(
   fetchCurrentUser,
   async (req: any, res) => {
     const currentUser = req.currentUser;
-    ShoppingCart.findOne(
-      { user: currentUser._id },
-      (err: any, shoppingCart: any) => {
-        if (err) {
-          return res
-            .status(500)
-            .json({ status: 0, message: req.t("HTTP_500") });
-        }
+    const shoppingCart = await shoppingCartService.read(currentUser);
+    if (!shoppingCart) {
+      return res
+        .status(404)
+        .json({ status: 0, message: req.t("SHOPPING_CART.ERROR.NO_CART") });
+    }
 
-        if (!shoppingCart) {
-          return res
-            .status(404)
-            .json({ status: 0, message: req.t("SHOPPING_CART.ERROR.NO_CART") });
-        }
-        return res.json({ status: 1, message: { shoppingCart } });
-      }
-    );
+    return res.json({ status: 1, message: { shoppingCart } });
   }
 );
 
@@ -144,5 +135,15 @@ app.delete(
           message: req.t("SHOPPING_CART.CART_DELETED"),
         });
       });
+  }
+);
+
+app.post(
+  "/shopping-cart/checkout",
+  isAuthenticated,
+  fetchCurrentUser,
+  async (req: any, res) => {
+    const currentUser = req.currentUser;
+    shoppingCartService.checkout();
   }
 );

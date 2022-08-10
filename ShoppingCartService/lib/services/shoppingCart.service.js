@@ -4,6 +4,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const ShoppingCart_model_1 = __importDefault(require("../models/ShoppingCart.model"));
+const read = async (user) => {
+    return ShoppingCart_model_1.default.findOne({ user: user._id });
+};
 const create = async (data) => {
     let shoppingCart = await ShoppingCart_model_1.default.findOne({ user: data.user._id });
     const shoppingCartData = data;
@@ -50,5 +53,6 @@ const remove = async (user) => {
         user: user._id,
     });
 };
-exports.default = { create, update, remove };
+const checkout = async () => { };
+exports.default = { read, create, update, remove, checkout };
 //# sourceMappingURL=ShoppingCart.service.js.map

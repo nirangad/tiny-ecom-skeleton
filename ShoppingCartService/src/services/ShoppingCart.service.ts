@@ -4,6 +4,10 @@ import ShoppingCart, {
 } from "../models/ShoppingCart.model";
 import { IUser } from "../models/User.model";
 
+const read = async (user: IUser) => {
+  return ShoppingCart.findOne({ user: user._id });
+};
+
 const create = async (data: { user: IUser; items: IShoppingCartItem[] }) => {
   let shoppingCart = await ShoppingCart.findOne({ user: data.user._id });
   const shoppingCartData: IShoppingCart = data;
@@ -60,4 +64,6 @@ const remove = async (user: IUser) => {
   });
 };
 
-export default { create, update, remove };
+const checkout = async () => {};
+
+export default { read, create, update, remove, checkout };

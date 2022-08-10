@@ -12,7 +12,6 @@ const logger_1 = __importDefault(require("./common/logger/logger"));
 const fetchCurrentUser_1 = __importDefault(require("./common/mongo/fetchCurrentUser"));
 const localize_1 = __importDefault(require("./common/locales/localize"));
 const is_authenticated_1 = __importDefault(require("@nirangad/is-authenticated"));
-const ShoppingCart_model_1 = __importDefault(require("./models/ShoppingCart.model"));
 const ShoppingCart_service_1 = __importDefault(require("./services/ShoppingCart.service"));
 // DotEnv Configuration
 dotenv_1.default.config();
@@ -40,19 +39,13 @@ app.get("/shopping-cart", is_authenticated_1.default, (req, res) => {
 });
 app.get("/shopping-cart/active", is_authenticated_1.default, fetchCurrentUser_1.default, async (req, res) => {
     const currentUser = req.currentUser;
-    ShoppingCart_model_1.default.findOne({ user: currentUser._id }, (err, shoppingCart) => {
-        if (err) {
-            return res
-                .status(500)
-                .json({ status: 0, message: req.t("HTTP_500") });
-        }
-        if (!shoppingCart) {
-            return res
-                .status(404)
-                .json({ status: 0, message: req.t("SHOPPING_CART.ERROR.NO_CART") });
-        }
-        return res.json({ status: 1, message: { shoppingCart } });
-    });
+    const shoppingCart = await ShoppingCart_service_1.default.read(currentUser);
+    if (!shoppingCart) {
+        return res
+            .status(404)
+            .json({ status: 0, message: req.t("SHOPPING_CART.ERROR.NO_CART") });
+    }
+    return res.json({ status: 1, message: { shoppingCart } });
 });
 app.post("/shopping-cart", is_authenticated_1.default, fetchCurrentUser_1.default, async (req, res) => {
     const currentUser = req.currentUser;
@@ -104,5 +97,9 @@ app.delete("/shopping-cart", is_authenticated_1.default, fetchCurrentUser_1.defa
             message: req.t("SHOPPING_CART.CART_DELETED"),
         });
     });
+});
+app.post("/shopping-cart/checkout", is_authenticated_1.default, fetchCurrentUser_1.default, async (req, res) => {
+    const currentUser = req.currentUser;
+    ShoppingCart_service_1.default.checkout();
 });
 //# sourceMappingURL=index.js.map

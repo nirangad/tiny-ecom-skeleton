@@ -13,7 +13,7 @@ i18next_1.default
     fallbackLng: "en",
     supportedLngs: ["en", "de"],
     backend: {
-        loadPath: "./common/locales/i18n/{{lng}}.json",
+        loadPath: "src/common/locales/i18n/{{lng}}.json",
     },
 });
 const i18nextexpress = i18next_http_middleware_1.default.handle(i18next_1.default);

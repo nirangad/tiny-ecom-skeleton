@@ -19,7 +19,7 @@ Tiniest E Commerce skeleton with microservices architecture with NodeJS. This is
   - New languages can be enabled by updating ```supportedLngs``` in ```common\locales\localize.ts```
   - New resources file should be placed in ```common\locales\i18n``` with ```<language_code>.json``` as the file name
   - German translation are taken directly from Google Translate. So might not be accurate
-- All services are dockerized and ```docker-compose``` is used to spin everything up or shut it all down
+- All services are dockerized and ```docker-compose``` is used to spin everything up and/or shut it all down
 
 ## Top level architecture
 
