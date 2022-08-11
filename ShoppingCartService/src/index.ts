@@ -1,5 +1,4 @@
 import express from "express";
-import { body } from "express-validator";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
 import { Connection, Channel } from "amqplib";

@@ -2,8 +2,6 @@ import express from "express";
 import { body, validationResult } from "express-validator";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
-import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 
 import logger from "./common/logger/logger";
 import validateId from "./common/mongo/idValidation";
@@ -11,6 +9,7 @@ import i18nextexpress from "./common/locales/localize";
 import isAuthenticated from "@nirangad/is-authenticated";
 
 import User from "./models/User.model";
+import authService from "./services/AuthService.service";
 
 // DotEnv Configuration
 dotenv.config();
@@ -37,20 +36,6 @@ app.listen(port, () => {
   console.log(`Auth Service listening on port ${port}`);
 });
 
-// Hashing
-const hashPassword = async (password: string): Promise<string> => {
-  const salt = await bcrypt.genSalt(6);
-  return await bcrypt.hash(password, salt);
-};
-
-const checkPassword = async (
-  password: string,
-  hashed: string
-): Promise<boolean> => {
-  const valid = await bcrypt.compare(password, hashed);
-  return valid;
-};
-
 // Express Routes
 app.get("/auth", (req, res) => {
   return res.json({ status: 1, message: req.t("AUTH.WELCOME") });
@@ -58,8 +43,8 @@ app.get("/auth", (req, res) => {
 
 app.delete("/auth", isAuthenticated, (req: any, res) => {
   const authUser = req.user;
-  User.deleteOne(
-    { email: authUser.email },
+  authService.deleteUser(
+    authUser.email,
     (err: any, data: { deletedCount: number }) => {
       if (err) {
         return res.status(500).json({
@@ -84,12 +69,12 @@ app.delete("/auth", isAuthenticated, (req: any, res) => {
 });
 
 app.get("/auth/users/all", isAuthenticated, async (_req, res) => {
-  const users = await User.find({});
+  const users = await authService.getAllUsers();
   return res.json({ status: 1, message: users });
 });
 
 app.get("/auth/users/current", isAuthenticated, async (req: any, res) => {
-  const user = await User.findOne({ email: req.user.email });
+  const user = await authService.getUser({ email: req.user.email });
   if (!user) {
     return res
       .status(404)
@@ -103,7 +88,7 @@ app.get(
   isAuthenticated,
   validateId,
   async (req: any, res) => {
-    const user = await User.findById(req.params.id);
+    const user = await authService.getUser({ _id: req.params.id });
     if (!user) {
       return res
         .status(404)
@@ -129,39 +114,43 @@ app.post("/auth/login", body("email").isEmail(), async (req, res) => {
     });
   }
 
-  User.findOne({ email }, "+password", async (err: any, user: any) => {
-    if (err) {
-      return res.status(500).json({ status: 0, message: req.t("HTTP_500") });
-    }
+  const user = await authService.getUser({ email }, true);
+  if (!user) {
+    return res
+      .status(404)
+      .json({ status: 0, message: req.t("AUTH.ERROR.NO_USER") });
+  }
 
-    const valid = await checkPassword(password, user?.password || "");
-    if (valid) {
-      const token = jwt.sign(
-        { id: user.id, email: user.email, timestamp: Date.now() },
-        process.env.SECRET_KEY ||
-          JSON.stringify({ id: user.id, email: user.email }),
-        { expiresIn: "10h" }
-      );
+  const valid = authService.validateLogin(password, user.password!);
 
-      if (!token) {
-        return res.status(500).json({
-          status: 0,
-          message: req.t("HTTP_500"),
-        });
-      }
-      user.password = undefined;
+  if (valid) {
+    const secretKey =
+      process.env.SECRET_KEY ||
+      JSON.stringify({ id: user.id, email: user.email });
 
-      return res.json({
-        status: 1,
-        message: { user, token },
-      });
-    } else {
-      return res.status(400).json({
+    const token = await authService.generateToken(
+      { id: user.id, email: user.email, timestamp: Date.now() },
+      secretKey
+    );
+
+    if (!token) {
+      return res.status(500).json({
         status: 0,
-        message: req.t("AUTH.ERROR.INCORRECT_CREDENTIALS"),
+        message: req.t("HTTP_500"),
       });
     }
-  });
+    user.password = undefined;
+
+    return res.json({
+      status: 1,
+      message: { user, token },
+    });
+  } else {
+    return res.status(400).json({
+      status: 0,
+      message: req.t("AUTH.ERROR.INCORRECT_CREDENTIALS"),
+    });
+  }
 });
 
 app.post(
@@ -182,14 +171,14 @@ app.post(
     }
     const { email, password } = req.body;
 
-    let user = await User.findOne({ email });
+    let user = await authService.getUser({ email });
     if (user) {
       return res
         .status(400)
         .json({ status: 0, message: req.t("AUTH.ERROR.USER_EXISTS") });
     } else {
-      let user = new User({ ...req.body });
-      user.password = await hashPassword(password);
+      let user: any = new User({ ...req.body });
+      user.password = await authService.hashPassword(password);
       await user.save();
       user.password = undefined;
 
