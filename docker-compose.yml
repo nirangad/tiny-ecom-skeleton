@@ -69,5 +69,21 @@ services:
       - SECRET_KEY=3FBE9D2EF4
       - AUTH_SERVER=http://auth-service:8080
 
+  order-consumer-service:
+    build:
+      context: ./OrderService
+      dockerfile: ./OrderConsumer.Dockerfile
+    image: order-consumer-service:latest
+    ports:
+      - "8084:8084"
+    networks:
+      - erp-microservices-network
+    restart: always
+    depends_on:
+      - "rabbitmq"
+    environment:
+      - RABBITMQ_URL=amqp://rabbitmq:5672
+      - SECRET_KEY=3FBE9D2EF4
+
 networks:
   erp-microservices-network: {}

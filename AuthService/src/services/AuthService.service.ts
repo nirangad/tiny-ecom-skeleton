@@ -1,10 +1,8 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { QueryOptions } from "mongoose";
 
-import User, { IUser } from "../models/User.model";
+import User from "../models/User.model";
 
-// Hashing
 const hashPassword = async (password: string): Promise<string> => {
   const salt = await bcrypt.genSalt(6);
   return await bcrypt.hash(password, salt);

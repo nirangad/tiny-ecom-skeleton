@@ -1,6 +1,8 @@
 # tiny-ecom-skeleton
 Tiniest E-Commerce skeleton with microservices architecture with NodeJS. This is an attempt to cover basics of microservices architecture. Many concepts/tools are being used.
 
+Please note that connections to MongoDB and RabbitMQ are made without authentication. Make sure to do the necessary changes to the code if authentication is required
+
 ## Tools and Technologies
 
 - ```express``` for exposing REST endpoints

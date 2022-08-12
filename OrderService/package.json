@@ -4,16 +4,19 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "tsc",
+    "build": "ls -lh && tsc",
     "dev": "nodemon ./lib/index.js",
-    "start": "node ./lib/index.js"
+    "dev:consumer": "nodemon ./lib/services/OrderConsumer.js",
+    "start": "node ./lib/index.js",
+    "start:consumer": "node ./lib/services/OrderConsumer.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@nirangad/is-authenticated": "^1.0.0",
+    "@nirangad/is-authenticated": "^1.0.2",
     "amqplib": "^0.10.0",
+    "axios": "^0.27.2",
     "bcrypt": "^5.0.1",
     "body-parser": "^1.20.0",
     "dotenv": "^16.0.1",

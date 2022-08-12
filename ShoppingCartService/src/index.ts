@@ -25,9 +25,6 @@ app.use(i18nextexpress);
 // Logger
 app.use(logger());
 
-const startServer = async () => {};
-startServer();
-
 // RabbitMQ connection
 let rabbitInstance: { connection: Connection; channel: Channel; queue: string };
 rabbitMQ
@@ -152,10 +149,10 @@ app.post(
   fetchCurrentUser,
   async (req: any, res) => {
     const currentUser = req.currentUser;
-    const queued = await shoppingCartService.checkout(
-      currentUser,
-      rabbitInstance
-    );
+    const queued = await shoppingCartService.checkout(currentUser, {
+      ...rabbitInstance,
+      queue: process.env.RABBITMQ_ORDER_QUEUE!,
+    });
 
     if (!queued) {
       return res.status(404).json({
