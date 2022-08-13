@@ -10,10 +10,13 @@ const mongoose_1 = __importDefault(require("mongoose"));
 const rabbitmq_1 = __importDefault(require("./common/rabbitmq/rabbitmq"));
 const logger_1 = __importDefault(require("./common/logger/logger"));
 const localize_1 = __importDefault(require("./common/locales/localize"));
+const is_authenticated_1 = __importDefault(require("@nirangad/is-authenticated"));
+const Order_service_1 = __importDefault(require("./services/Order.service"));
+const fetchCurrentUser_1 = __importDefault(require("./common/mongo/fetchCurrentUser"));
 // DotEnv Configuration
 dotenv_1.default.config();
 // Express Server
-const port = (_a = process.env.ORDER_SERVER_PORT) !== null && _a !== void 0 ? _a : 8082;
+const port = (_a = process.env.ORDER_SERVER_PORT) !== null && _a !== void 0 ? _a : 8083;
 const app = express_1.default();
 app.use(express_1.default.json());
 // Localization
@@ -34,5 +37,14 @@ mongoose_1.default.connect(mongoDBURL, () => {
 });
 app.listen(port, async () => {
     console.log(`Order Service listening on port ${port}`);
+});
+// Express Routes
+app.get("/order", is_authenticated_1.default, (req, res) => {
+    return res.json({ status: 1, message: req.t("ORDER.WELCOME") });
+});
+app.get("/order/all", is_authenticated_1.default, fetchCurrentUser_1.default, async (req, res) => {
+    const currentUser = req.currentUser;
+    const orders = await Order_service_1.default.allOrders(currentUser);
+    return res.json({ status: 1, message: orders });
 });
 //# sourceMappingURL=index.js.map

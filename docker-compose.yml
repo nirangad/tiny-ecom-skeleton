@@ -69,6 +69,23 @@ services:
       - SECRET_KEY=3FBE9D2EF4
       - AUTH_SERVER=http://auth-service:8080
 
+  order-service:
+    build: ./OrderService
+    image: order-service:latest
+    ports:
+      - "8083:8083"
+    networks:
+      - erp-microservices-network
+    restart: always
+    depends_on:
+      - "mongodb"
+      - "rabbitmq"
+    environment:
+      - RABBITMQ_URL=amqp://rabbitmq:5672
+      - MONGODB_URL=mongodb://mongodb:27017/order-service
+      - SECRET_KEY=3FBE9D2EF4
+      - AUTH_SERVER=http://auth-service:8080
+
   order-consumer-service:
     build:
       context: ./OrderService

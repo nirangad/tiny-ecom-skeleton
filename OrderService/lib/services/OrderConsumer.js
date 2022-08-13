@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const rabbitmq_1 = __importDefault(require("../common/rabbitmq/rabbitmq"));
+const Order_service_1 = __importDefault(require("./Order.service"));
 require("dotenv").config();
 const orderQueue = process.env.RABBITMQ_ORDER_QUEUE || "rabbitmq@order";
 async function start() {
@@ -14,8 +15,12 @@ async function start() {
             .then((data) => {
             rabbitInstance = data;
             rabbitInstance.channel.consume(orderQueue, (message) => {
-                console.log("[ORDER CONSUMER] Message acknwolegded: ", message);
-                rabbitInstance.channel.ack(message);
+                if (message) {
+                    rabbitInstance.channel.ack(message);
+                    const { shoppingCart, user } = JSON.parse(message.content.toString());
+                    console.log("[ORDER CONSUMER] Message read: ", "Shopping Cart: ", shoppingCart._id, ", User: ", user._id);
+                    Order_service_1.default.create(shoppingCart, user);
+                }
             });
         })
             .catch((err) => {

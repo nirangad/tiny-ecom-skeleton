@@ -12,6 +12,7 @@ RUN npm install --location=global typescript
 
 COPY src/common ./src/common/
 COPY src/services ./src/services/
+COPY src/models ./src/models/
 
 RUN npm run build
 

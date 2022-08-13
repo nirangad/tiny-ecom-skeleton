@@ -1,5 +1,7 @@
 import { Channel, Connection, Message } from "amqplib";
+import mongoose from "mongoose";
 import rabbitMQ from "../common/rabbitmq/rabbitmq";
+import orderService from "./Order.service";
 
 require("dotenv").config();
 
@@ -19,12 +21,18 @@ async function start() {
 
         rabbitInstance.channel.consume(orderQueue, (message) => {
           if (message) {
-            console.log("[ORDER CONSUMER] Message acknwolegded: ", message);
             rabbitInstance.channel.ack(message as Message);
-            console.log(
-              "[ORDER CONSUMER] Message content: ",
-              JSON.parse(message.content.toString())
+            const { shoppingCart, user } = JSON.parse(
+              message.content.toString()
             );
+            console.log(
+              "[ORDER CONSUMER] Message read: ",
+              "Shopping Cart: ",
+              shoppingCart._id,
+              ", User: ",
+              user._id
+            );
+            orderService.create(shoppingCart, user);
           }
         });
       })
@@ -37,5 +45,12 @@ async function start() {
     process.exit(1);
   }
 }
+
+// MongoDB Connection
+const mongoDBURL =
+  process.env.ORDER_MONGODB_URL ?? "mongodb://localhost:27017/order-service";
+mongoose.connect(mongoDBURL, () => {
+  console.log(`Consumer connected to Order DB`);
+});
 
 start();

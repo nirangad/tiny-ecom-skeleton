@@ -32,5 +32,11 @@
     "ERROR": {
       "NO_CART": "Shopping Cart does not exist"
     }
+  },
+  "ORDER": {
+    "WELCOME": "Welcome to Order Service",
+    "ERROR": {
+      "NO_ORDER": "Order does not exist"
+    }
   }
 }
